@@ -1,4 +1,0 @@
-path.config.properties=target/test-classes/config.properties
-path.log4j.properties=target/test-classes/log4j.properties
-path.jdbc.properties=target/test-classes/jdbc.properties
-path.policy.xml=target/test-classes/policy.xml
