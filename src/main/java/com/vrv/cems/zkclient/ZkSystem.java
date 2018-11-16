@@ -34,7 +34,7 @@ public class ZkSystem {
     private static String[] zkServerConnects;
 
     /**zk的服务类*/
-    private static ZkSystem _instance;
+    private static volatile ZkSystem _instance;
     private static Set<ZkClient> _zkClients = new HashSet<>();
 
     /**在zk存入信息位置*/
@@ -103,7 +103,9 @@ public class ZkSystem {
                 try {
                     LOG.debug("connect string : " + connectString);
                     final ZkConnection zkConnection = new ZkConnection(connectString);
+                    Long startTime = System.currentTimeMillis();
                     final ZkClient _zkClient = new ZkClient(zkConnection,15000);
+                    System.err.println("consume:"+ (System.currentTimeMillis()-startTime));
                     //加上状态变化监听
                     _zkClient.subscribeStateChanges(stateListener);
                     _zkClients.add(_zkClient);
@@ -136,7 +138,7 @@ public class ZkSystem {
         LOG.info("~~~~~~~~~~~~~~~ zk system started ~~~~~~~~~~~~~~~");
     }
 
-    private void cleanupZk() {
+    public void cleanupZk() {
         LOG.info("cleanup zk namespace");
         List<String> children = getZkClient().getChildren("/");
         for (String child : children) {
@@ -154,8 +156,6 @@ public class ZkSystem {
     public static ZkSystem getInstance() {
         if (_instance == null) {
             _instance = new ZkSystem();
-
-
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
                 public void run() {
@@ -210,7 +210,6 @@ public class ZkSystem {
             _zkClient = (ZkClient) i$.next();
             if(_zkClient == rmZkClient){
                 _zkClients.remove(_zkClient);
-                //_zkClient.closeConnection();
                 break;
             }
         }
@@ -236,7 +235,7 @@ public class ZkSystem {
      * 给每个客户端都增加一个状态监听
      * @param zkkStateListener
      */
-    public  void addZkkStateListener(IZkStateListener zkkStateListener) {
+    public  void addZkStateListener(IZkStateListener zkkStateListener) {
         //针对客户端状态进行监控
         if (zkkStateListener != null) {
             for (ZkClient _zkClient : _zkClients) {
@@ -246,6 +245,22 @@ public class ZkSystem {
             }
         }
     }
+
+    /**
+     * 给每个客户端都增加一个数据变化监听
+     */
+    public  void addZkDataListener(String path,IZkDataListener dataListener) {
+        //针对客户端path上的数据变化进行监听
+        if (dataListener != null) {
+            for (ZkClient _zkClient : _zkClients) {
+                if (_zkClient != null) {
+                    _zkClient.subscribeDataChanges(path,dataListener);
+                }
+            }
+        }
+    }
+
+
 
     /**
      * 去除所有其他监听

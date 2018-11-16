@@ -42,6 +42,14 @@ public class ZkClientSerializationTest {
     }
 
     @Test
+    public void testDataChange() {
+        ZkClient _zkClient = _zk.getZkClient();
+
+        String path = _zkClient.getChildren("/data/00FF0600/A").get(0);
+        _zkClient.updateDataSerialized(path,null);
+    }
+
+    @Test
     public void testSerializables() throws Exception {
         ZkClient zkClient = new ZkClient(_zk.getZkServerAddress(), 2000, 30000, new SerializableSerializer());
         String data = "hello world";

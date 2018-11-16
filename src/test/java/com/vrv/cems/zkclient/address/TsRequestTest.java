@@ -4,6 +4,7 @@ import com.sys.common.util.Assert;
 import com.vrv.cems.service.base.ServiceInvokerTest;
 import com.vrv.cems.service.base.SystemConstants;
 import com.vrv.cems.service.base.interfaces.IAddressService;
+import com.vrv.cems.zkclient.ZkSystem;
 import net.sf.json.JSONObject;
 import org.junit.Test;
 
@@ -211,5 +212,14 @@ public class TsRequestTest {
         System.out.println("serverNetMapping: " + result);
         Assert.notNull(result, "调用地址服务minCode=[" + minCode + "]结果不能为null!!!");
     }
+
+    /**
+     * 测试服务器网络映射变更通知
+     *****/
+    @Test
+    public void cleanupZk() {
+        ZkSystem.getInstance().cleanupZk();
+    }
+
 }
  

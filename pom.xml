@@ -15,7 +15,7 @@
     <artifactId>VRVJAVA-ZKCLIENT</artifactId>
     <version>1.0-2018092000-SNAPSHOT</version>
 
-    <name>CEMS-SERVICE-ZKCLIENT</name>
+    <name>VRVJAVA-ZKCLIENT</name>
     <url>http://192.168.32.101:88/nexus/index.html#view-repositories;CEMS-Release~browseindex</url>
     <description>CEMS-SERVICE-ZKCLIENT zk客户端工具包</description>
 
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>1.8.0</version>
+            <version>1.10.19</version>
         </dependency>
 
         <dependency>

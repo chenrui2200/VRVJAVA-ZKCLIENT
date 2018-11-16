@@ -182,7 +182,7 @@ public class ZkClient implements Watcher {
     }
 
     /**
-    节点上创建监听
+    节点上创建数据变化监听
      */
     public void subscribeDataChanges(String path, IZkDataListener listener) {
         Set<IZkDataListener> listeners;
@@ -624,9 +624,11 @@ public class ZkClient implements Watcher {
         LOG.debug("Received event: " + event);
         _zookeeperEventThread = Thread.currentThread();
 
+
         //判断什么发生了变化
         boolean stateChanged = event.getPath() == null;
         boolean znodeChanged = event.getPath() != null;
+
         boolean dataChanged = event.getType() == EventType.NodeDataChanged
                 || event.getType() == EventType.NodeDeleted
                 || event.getType() == EventType.NodeCreated
@@ -666,7 +668,7 @@ public class ZkClient implements Watcher {
                 }
             }
             if (znodeChanged || dataChanged) {
-                //节点发生变化
+                //条件锁signalAll
                 getEventLock().getZNodeEventCondition().signalAll();
             }
             //解锁
@@ -675,9 +677,7 @@ public class ZkClient implements Watcher {
         }
     }
 
-    /**
-     * 清除所有监听事件
-     */
+
     private void fireAllEvents() {
         for (Entry<String, Set<IZkChildListener>> entry : _childListener.entrySet()) {
             fireChildChangedEvents(entry.getKey(), entry.getValue());
@@ -894,6 +894,38 @@ public class ZkClient implements Watcher {
                 }
             }
             return true;
+        } catch (InterruptedException e) {
+            throw new ZkInterruptedException(e);
+        } finally {
+            getEventLock().unlock();
+        }
+    }
+
+    /**
+     * 在规定时间内读到某值
+     * @param path
+     * @param timeUnit
+     * @param time
+     * @return
+     * @throws ZkInterruptedException
+     */
+    @SuppressWarnings("unchecked")
+    public  <T extends Object> T waitUntilRead(String path, TimeUnit timeUnit, long time) throws ZkInterruptedException {
+        Date timeout = new Date(System.currentTimeMillis() + timeUnit.toMillis(time));
+        LOG.debug("Waiting until znode '" + path + "' becomes available.");
+        if (exists(path)) {
+            return readData(path);
+        }
+        acquireEventLock();
+        try {
+            while (!exists(path, true)) {
+                boolean gotSignal = getEventLock().getZNodeEventCondition().awaitUntil(timeout);
+                if (!gotSignal) {
+                    //如果在规定时间内没有读到值返回null
+                    return null;
+                }
+            }
+            return readData(path);
         } catch (InterruptedException e) {
             throw new ZkInterruptedException(e);
         } finally {
@@ -1391,4 +1423,5 @@ public class ZkClient implements Watcher {
             }
         });
     }
+
 }

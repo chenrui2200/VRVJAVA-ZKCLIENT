@@ -65,6 +65,7 @@ class ZkEventThread extends Thread {
         LOG.info("Starting ZkClient event thread.");
         try {
             while (!isInterrupted()) {
+                //LOG.info("here is operate _event.length:"+_events.size());
                 ZkEvent zkEvent = _events.take();
                 int eventId = _eventId.incrementAndGet();
                 LOG.debug("Delivering event #" + eventId + " " + zkEvent);

@@ -20,11 +20,13 @@ import static org.mockito.Mockito.mock;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 import com.vrv.cems.service.base.interfaces.IAddressService;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.FileUtils;
 import org.apache.zookeeper.Watcher;
@@ -126,7 +128,9 @@ public class TestUtil {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }*/
-        ZkClient zkClient = new ZkClient("192.168.133.63:2181", 10000);
+        Long startTime = System.currentTimeMillis();
+        ZkClient zkClient = new ZkClient("192.168.133.62:2181,192.168.133.63:2181,192.168.133.150:2181", 10000);
+        System.err.println("consume:"+ (System.currentTimeMillis()-startTime));
 
         /*String data = zkClient.readData("/CEMS-SERVICE-ZK-REGISTER");
         System.out.println("data->"+data);
@@ -139,10 +143,15 @@ public class TestUtil {
 
         //zkClient.createEphemeral("/data/CEMS-SERVICE-ZK-REGISTER/serverAreaMain/node0000000022/8","123123");
 
-        String dateJdbcPath = "/data/00FF0600/A/node0000000000/"+IAddressService.FTP;
+        String dateJdbcPath = "/data/00FF0600/A/node0000000051/ftp:--";
         JSONObject resultObj = zkClient.readData(dateJdbcPath,true);
-        System.out.println("resultObj->"+resultObj);
 
+        Iterator<JSONObject> iterator = resultObj.getJSONArray("jdata").iterator();
+        JSONObject dataObj = iterator.next();
+
+        System.out.println("dataObj->"+dataObj);
+        dataObj.put("port","24");
+        //zkClient.writeData(dateJdbcPath,resultObj);
 
         /*zkClient.subscribeChildChanges("/root/address/enode",new IZkChildListener(){
 

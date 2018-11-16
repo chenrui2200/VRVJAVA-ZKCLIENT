@@ -24,8 +24,10 @@ import java.util.List;
 import com.vrv.cems.zkclient.IDefaultNameSpace;
 import com.vrv.cems.zkclient.ZkClient;
 import com.vrv.cems.zkclient.ZkServer;
+import com.vrv.cems.zkclient.ZkSystem;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
 public class ZkTestSystem extends ExternalResource {
@@ -58,6 +60,7 @@ public class ZkTestSystem extends ExternalResource {
         cleanupZk();
     }
 
+
     @Override
     // executed after every test method
     protected void after() {
@@ -79,7 +82,7 @@ public class ZkTestSystem extends ExternalResource {
     public static ZkTestSystem getInstance() {
         if (_instance == null) {
             _instance = new ZkTestSystem();
-            _instance.cleanupZk();
+            //_instance.cleanupZk();
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
                 public void run() {

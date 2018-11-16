@@ -72,7 +72,10 @@ public class ZkConnection implements IZkConnection {
                 LOG.debug("Resolving hosts from configured hosts " + _servers);
                 _resolvedServers = resolveHosts();
                 LOG.debug("Creating new ZookKeeper instance to connect to resolved hosts " + _resolvedServers + ".");
+                Long startTime = System.currentTimeMillis();
                 _zk = new ZooKeeper(_resolvedServers, _sessionTimeOut, watcher);
+                System.err.println("consume2:"+ (System.currentTimeMillis()-startTime));
+
             } catch (IOException e) {
                 throw new ZkException("Unable to connect to " + _resolvedServers, e);
             }

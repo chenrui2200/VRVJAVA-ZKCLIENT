@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <B>说       明</B>:服务区域变更辅助类。
@@ -32,36 +33,26 @@ public class ZkCaptureHandler {
 
         ZkClient _zkClient = _zkSystem.getZkClient();
         String dataPath = "/data/"+maxCode+"/" +ZkSystem.getServerAreaId();
+
+        //做等待，看是否能在等待时间里出现该节点
+        if(_zkClient.waitUntilExists(dataPath,TimeUnit.SECONDS,10)){
+            LOG.error("wait 10 seconds but znode["+dataPath+"]not exists");
+            return null;
+        }
+        //查找子节点
         List<String> addrChild = _zkClient.getChildren(dataPath);
 
         if(addrChild!=null && addrChild.size()>0){
 
             String dateJdbcPath = dataPath + "/" + addrChild.get(0) + "/" + (key+":"+ (type==null?"--":type) );
-            String json= _zkClient.readData(dateJdbcPath,true);
-            if(json == null){
-                return null;
-            }
 
-            JSONArray jsonArray = JSONArray.fromObject(json);
-            if(jsonArray == null){
+            JSONObject jsonObject= _zkClient.waitUntilRead(dateJdbcPath,TimeUnit.SECONDS,10);
+            if(jsonObject == null){
                 LOG.warn("no invalid address data on path["+dateJdbcPath+"]");
                 return null;
             }
-            if(args.length > 0){
-                Map paramMap = new HashMap<>();
-                for(int i=0;i<args.length;i+=2) {
-                    String targetKey = args[i];
-                    String targetValue = args[i + 1];
-                    paramMap.put(targetKey,targetValue);
-                }
-                resultObject.put("jdata",filterTargetJSONObject(jsonArray,paramMap));
-                return resultObject;
 
-            }else{
-                resultObject.put("jdata",jsonArray);
-                return resultObject;
-
-            }
+            return jsonObject;
         }else{
             LOG.warn("no invalid address data node");
             return null;
